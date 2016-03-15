@@ -5,21 +5,21 @@ module Text.Smolder.Renderer.Util
 
 import Prelude
 
-import Data.Maybe
-import Data.Tuple
-import Data.List
+import Data.Maybe (Maybe(..))
+import Data.Tuple (Tuple(..))   
+import Data.List (List(..), toList, (:))
 
-import qualified Data.Map as Map
-import qualified Text.Smolder.Markup as Markup
+import Data.Map as Map
+import Text.Smolder.Markup as Markup
 
 data Node
   = Element String (Map.Map String String) (List Node)
   | Text String
 
 renderMarkup :: forall a. Markup.MarkupM a -> List Node
-renderMarkup (Markup.Element name (Just children) attrs rest) = 
+renderMarkup (Markup.Element name (Just children) attrs rest) =
   Element name (renderAttrs attrs) (renderMarkup children) : renderMarkup rest
-renderMarkup (Markup.Element name Nothing attrs rest) = 
+renderMarkup (Markup.Element name Nothing attrs rest) =
   Element name (renderAttrs attrs) Nil : renderMarkup rest
 renderMarkup (Markup.Content text rest) = Text text : renderMarkup rest
 renderMarkup (Markup.Return _) = Nil

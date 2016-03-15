@@ -6,17 +6,20 @@ module Text.Smolder.Markup
   , leaf
   , text
   , Attribute()
-  , Attributable
+  , class Attributable
   , with
   , attribute
   , (!)
+  , withP
   , (!?)
   ) where
 
-import Prelude
+import Prelude (class Semigroup, class Monad, class Bind, class Applicative,
+                class Apply, class Functor, Unit,
+                (<>), append, bind, ap, map, unit)
 
-import Data.Maybe
-import Data.Monoid
+import Data.Maybe (Maybe(..))
+import Data.Monoid (class Monoid, mempty)
 
 import Control.Apply ((*>))
 
@@ -25,7 +28,7 @@ data Attr = Attr String String
 data MarkupM a
   = Element String (Maybe Markup) (Array Attr) (MarkupM a)
   | Content String (MarkupM a)
-  | Return a 
+  | Return a
 
 type Markup = MarkupM Unit
 
@@ -35,7 +38,7 @@ parent el kids = Element el (Just kids) [] (Return unit)
 leaf :: String -> Markup
 leaf el = Element el Nothing [] (Return unit)
 
-text :: forall a. String -> Markup
+text :: String -> Markup
 text s = Content s (Return unit)
 
 instance semigroupMarkupM :: Semigroup (MarkupM a) where
@@ -76,18 +79,15 @@ attribute key value = Attribute [Attr key value]
 class Attributable a where
   with :: a -> Attribute -> a
 
-instance attributableMarkupM :: Attributable (MarkupM Unit) where
+instance attributableMarkupM :: Partial => Attributable (MarkupM Unit) where
   with (Element el kids attrs rest) (Attribute xs) = Element el kids (attrs <> xs) rest
 
-instance attributableMarkupMF :: Attributable (MarkupM Unit -> MarkupM Unit) where
+instance attributableMarkupMF :: Partial => Attributable (MarkupM Unit -> MarkupM Unit) where
   with k xs m = k m `with` xs
 
-infixl 4 !
+infixl 4 with as !
 
-(!) :: forall a. (Attributable a) => a -> Attribute -> a
-(!) = with
+withP :: forall h. (Attributable h) => h -> Boolean -> Attribute -> h
+withP h c a = if c then h ! a else h
 
-infixl 4 !?
-
-(!?) :: forall h. (Attributable h) => h -> Boolean -> Attribute -> h
-(!?) h c a = if c then h ! a else h
+infixl 4 withP as !?
