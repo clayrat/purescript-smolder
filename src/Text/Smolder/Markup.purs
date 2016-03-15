@@ -79,10 +79,10 @@ attribute key value = Attribute [Attr key value]
 class Attributable a where
   with :: a -> Attribute -> a
 
-instance attributableMarkupM :: Partial => Attributable (MarkupM Unit) where
+instance attributableMarkupM :: Attributable (MarkupM Unit) where
   with (Element el kids attrs rest) (Attribute xs) = Element el kids (attrs <> xs) rest
 
-instance attributableMarkupMF :: Partial => Attributable (MarkupM Unit -> MarkupM Unit) where
+instance attributableMarkupMF :: Attributable (MarkupM Unit -> MarkupM Unit) where
   with k xs m = k m `with` xs
 
 infixl 4 with as !
